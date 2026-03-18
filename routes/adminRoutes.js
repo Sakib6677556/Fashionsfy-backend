@@ -18,7 +18,7 @@ router.put('/users/:id/toggle', protect, adminOnly, async (req, res) => {
   }
 });
 
-router.post('/seed', async (req, res) => {
+router.get('/seed', async (req, res) => {
   try {
     const User = require('../models/User');
     const Category = require('../models/Category');
@@ -62,3 +62,37 @@ router.post('/seed', async (req, res) => {
 });
 
 module.exports = router;
+
+// Temp route - make user admin & delete old admin
+router.get('/fix-admin', async (req, res) => {
+  try {
+    const User = require('../models/User');
+
+    // Make this user admin
+    const targetUser = await User.findOneAndUpdate(
+      { email: 'najmussalehinsakib@gmail.com' },
+      { role: 'admin' },
+      { new: true }
+    );
+
+    if (!targetUser) {
+      return res.status(404).json({ success: false, message: 'User najmussalehinsakib@gmail.com not found. Make sure this account exists first.' });
+    }
+
+    // Delete old admin account (admin@fashionsfy.com)
+    const deleted = await User.findOneAndDelete({
+      email: 'admin@fashionsfy.com',
+      role: 'admin'
+    });
+
+    res.json({
+      success: true,
+      message: 'Done!',
+      newAdmin: { name: targetUser.name, email: targetUser.email, role: targetUser.role },
+      deletedOldAdmin: deleted ? `Deleted: ${deleted.email}` : 'Old admin account was not found (already deleted or different email)'
+    });
+
+  } catch (err) {
+    res.status(500).json({ success: false, message: err.message });
+  }
+});
