@@ -1,0 +1,10 @@
+const express = require('express');
+const router = express.Router();
+const { getBanners, createBanner, updateBanner, deleteBanner } = require('../controllers/miscControllers');
+const { protect, adminOnly, optionalAuth } = require('../middleware/auth');
+const { upload } = require('../config/cloudinary');
+router.get('/', optionalAuth, getBanners);
+router.post('/', protect, adminOnly, upload.single('image'), createBanner);
+router.put('/:id', protect, adminOnly, upload.single('image'), updateBanner);
+router.delete('/:id', protect, adminOnly, deleteBanner);
+module.exports = router;
